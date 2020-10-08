@@ -117,39 +117,71 @@ int main(int, char**)
 
     // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
     {
-      static float f = 0.0f;
-      static int counter = 0;
-      ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
-      ImGui::SetNextWindowSize(ImVec2(WIDTH, HEIGHT), ImGuiCond_FirstUseEver);
+      int window_x = 0;
+      int window_y = 0;
+      int window_w = 600;
+      int window_h = 500;
+      static bool tabs[6] = { true, true, true, true, true, true };
+      static bool states[3] = { true, true, true };
+      static bool types[3] = { true, false, false };
+      ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_FirstUseEver);
+      ImGui::SetNextWindowSize(ImVec2(window_w, window_h), ImGuiCond_FirstUseEver);
       ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar |
                                       ImGuiWindowFlags_NoMove |
                                       ImGuiWindowFlags_NoResize |
                                       ImGuiWindowFlags_NoCollapse;
       ImGui::Begin(" ", NULL, window_flags);
-
-      ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-      ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-      ImGui::Checkbox("Another Window", &show_another_window);
-
-      ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-      ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-      if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-      counter++;
-      ImGui::SameLine();
-      ImGui::Text("counter = %d", counter);
-
+      ImGui::Columns(7);
+      const char* titles[3] = { "Tabs", "Types", "States" };
+      const char* s_tabs[6] = { "SI", "S", "SU", "SL", "?", "!" };
+      const char* s_types[3] = { "Levels", "Episodes", "Stories" };
+      const char* s_states[3] = { "Locked", "Unlocked", "Completed" };
+      for (int i = 0; i < 3; i++) {
+        ImGui::Text("%s", titles[i]);
+        ImGui::NextColumn();
+        for (int j = 0; j < 6; j++) {
+          if (!(i > 0 && j > 2)) {
+            bool entry;
+            const char* text;
+            switch (i) {
+              case 0:
+                entry = tabs[j];
+                text = s_tabs[j];
+                break;
+              case 1:
+                entry = types[j];
+                text = s_types[j];
+                break;
+              case 2:
+                entry = states[j];
+                text = s_states[j];
+                break;
+              default:
+                continue;
+            }
+            ImGui::Checkbox(text, &entry);
+            ImGui::NextColumn();
+          } else {
+            ImGui::NextColumn();
+          }
+        }
+      }
+      ImGui::Separator();
+      const char* headers[7] = {"ID", "State", "Attempts", "Victories", "Gold", "Score", "Rank"};
+      for (int i = 0; i < 7; i++) {
+        ImGui::Text("%s", headers[i]);
+        ImGui::NextColumn();
+      }
+      ImGui::Separator();
+      for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < 7; j++) {
+          ImGui::Text("SI-A-00-00");
+          ImGui::NextColumn();
+        }
+      }
+      ImGui::Columns(1);
+      ImGui::Separator();
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-      ImGui::End();
-    }
-
-    // 3. Show another simple window.
-    if (show_another_window)
-    {
-      ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-      ImGui::Text("Hello from another window!");
-      if (ImGui::Button("Close Me"))
-      show_another_window = false;
       ImGui::End();
     }
 
