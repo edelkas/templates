@@ -21,6 +21,16 @@ static void glfw_error_callback(int error, const char* description)
   fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
+void create_window(int window_x, int window_y, int window_w, int window_h) {
+  ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar |
+                                  ImGuiWindowFlags_NoMove |
+                                  ImGuiWindowFlags_NoResize |
+                                  ImGuiWindowFlags_NoCollapse;
+  ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowSize(ImVec2(window_w, window_h), ImGuiCond_FirstUseEver);
+  ImGui::Begin(" ", NULL, window_flags);
+}
+
 int main(int, char**)
 {
   // Setup window
@@ -44,6 +54,8 @@ int main(int, char**)
   //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
   //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
   #endif
+  glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+  //glfwWindowHint(GLFW_DECORATED, GL_FALSE);
 
   // Create window with graphics context
   GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, NAME, NULL, NULL);
@@ -95,7 +107,7 @@ int main(int, char**)
   // Our state
   bool show_demo_window = true;
   bool show_another_window = false;
-  ImVec4 clear_color = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+  ImVec4 clear_color = ImVec4(0.0586f, 0.0586f, 0.0586f, 0.9375f);
 
   // Main loop
   while (!glfwWindowShouldClose(window))
@@ -111,61 +123,35 @@ int main(int, char**)
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-
-    // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-//    if (show_demo_window) ImGui::ShowDemoWindow(&show_demo_window);
-
-    // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-    {
-      int window_x = 0;
-      int window_y = 0;
-      int window_w = 600;
-      int window_h = 500;
-      static bool tabs[6] = { true, true, true, true, true, true };
-      static bool states[3] = { true, true, true };
-      static bool types[3] = { true, false, false };
-      ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_FirstUseEver);
-      ImGui::SetNextWindowSize(ImVec2(window_w, window_h), ImGuiCond_FirstUseEver);
-      ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar |
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar |
                                       ImGuiWindowFlags_NoMove |
                                       ImGuiWindowFlags_NoResize |
                                       ImGuiWindowFlags_NoCollapse;
-      ImGui::Begin(" ", NULL, window_flags);
-      ImGui::Columns(7);
-      const char* titles[3] = { "Tabs", "Types", "States" };
+
+    // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+    {
+      static bool tabs[6] = { true, true, true, true, true, true };
+      static bool states[3] = { true, true, true };
+      static bool types[3] = { true, false, false };
+      static bool modes[4] = { true, false, false, false };
+      const char* titles[4] = { "Tabs", "Types", "Modes", "States" };
       const char* s_tabs[6] = { "SI", "S", "SU", "SL", "?", "!" };
       const char* s_types[3] = { "Levels", "Episodes", "Stories" };
+      const char* s_modes[4] = { "Solo", "Coop", "Race", "Hardcore" };
       const char* s_states[3] = { "Locked", "Unlocked", "Completed" };
-      for (int i = 0; i < 3; i++) {
-        ImGui::Text("%s", titles[i]);
-        ImGui::NextColumn();
-        for (int j = 0; j < 6; j++) {
-          if (!(i > 0 && j > 2)) {
-            bool entry;
-            const char* text;
-            switch (i) {
-              case 0:
-                entry = tabs[j];
-                text = s_tabs[j];
-                break;
-              case 1:
-                entry = types[j];
-                text = s_types[j];
-                break;
-              case 2:
-                entry = states[j];
-                text = s_states[j];
-                break;
-              default:
-                continue;
-            }
-            ImGui::Checkbox(text, &entry);
-            ImGui::NextColumn();
-          } else {
-            ImGui::NextColumn();
-          }
-        }
+      create_window(0, 0, 600, 500);
+      ImGui::Columns(4);
+      for (int i = 0; i < 4; i++) {
+        ImGui::Text("%s", titles[i]); ImGui::NextColumn();
       }
+      ImGui::Separator();
+      for (int i = 0; i < 6; i++) {
+                   ImGui::Checkbox(s_tabs[i],   &tabs[i]);   ImGui::NextColumn();
+        if (i < 3) ImGui::Checkbox(s_types[i],  &types[i]);  ImGui::NextColumn();
+        if (i < 4) ImGui::Checkbox(s_modes[i],  &modes[i]);  ImGui::NextColumn();
+        if (i < 3) ImGui::Checkbox(s_states[i], &states[i]); ImGui::NextColumn();
+      }
+      ImGui::Columns(7);
       ImGui::Separator();
       const char* headers[7] = {"ID", "State", "Attempts", "Victories", "Gold", "Score", "Rank"};
       for (int i = 0; i < 7; i++) {
@@ -173,14 +159,17 @@ int main(int, char**)
         ImGui::NextColumn();
       }
       ImGui::Separator();
-      for (int i = 0; i < 10; i++) {
+      for (int i = 0; i < 20; i++) {
         for (int j = 0; j < 7; j++) {
           ImGui::Text("SI-A-00-00");
           ImGui::NextColumn();
         }
       }
-      ImGui::Columns(1);
-      ImGui::Separator();
+      ImGui::End();
+    }
+
+    {
+      create_window(0, HEIGHT - 24, WIDTH, 24);
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
       ImGui::End();
     }
