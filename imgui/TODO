@@ -1,0 +1,3 @@
+* Disable dragging columns, as they produce a wacky effect now.
+* Remove the padding, so that there's no separation between the table.
+* Maybe use the Tables API instead of standard columns.
