@@ -34,7 +34,7 @@ static void HelpMarker(const char* desc)
     }
 }
 
-void create_window(int window_x, int window_y, int window_w, int window_h) {
+static void create_window(const char* window_name, int window_x, int window_y, int window_w, int window_h) {
   ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar |
                                   ImGuiWindowFlags_NoMove |
                                   ImGuiWindowFlags_NoResize |
@@ -42,7 +42,7 @@ void create_window(int window_x, int window_y, int window_w, int window_h) {
                                   ImGuiWindowFlags_AlwaysUseWindowPadding;
   ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize(ImVec2(window_w, window_h), ImGuiCond_FirstUseEver);
-  ImGui::Begin(" ", NULL, window_flags);
+  ImGui::Begin(window_name, NULL, window_flags);
 }
 
 int main(int, char**)
@@ -94,7 +94,6 @@ int main(int, char**)
 
   // Setup Dear ImGui style
   ImGui::StyleColorsDark();
-  //ImGui::StyleColorsClassic();
 
   // Setup Platform/Renderer bindings
   ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -103,7 +102,7 @@ int main(int, char**)
   // Don't create ini config file
   io.IniFilename = NULL;
 
-  // Our state
+  // Background
   ImVec4 clear_color = ImVec4(0.0586f, 0.0586f, 0.0586f, 0.9375f);
 
   // Main loop
@@ -138,17 +137,20 @@ int main(int, char**)
       int window_x            = 0;
       int window_y            = 0;
       int window_w            = 600;
-      int window_h            = 500;
+      int window_h            = 600;
       int col0_width          = 77;
       int col0_offset         = 8;
       int col_width           = 85;
       int coln_width          = 55;
 
       /* Header */
-      create_window(window_x, window_y, window_w, window_h);
+      create_window("savefile", window_x, window_y, window_w, window_h);
       ImGui::Text("SAVEFILE ANALYSIS"); ImGui::SameLine();
       ImGui::SmallButton("Open savefile"); ImGui::SameLine();
-      ImGui::Text("Username");
+      ImGui::Text("Username"); ImGui::SameLine(ImGui::GetWindowWidth() - 30);
+      HelpMarker("This section will analyze your savefile and provide stats. \
+                  You first need to load it by clicking on 'Open savefile'. \
+                  If you don't know where the savefile is located, click on the 'Help' menu.");
 
       /* Checkboxes */
       ImGui::Columns(4);
@@ -170,10 +172,10 @@ int main(int, char**)
       /* Table */
       ImGui::Columns(1);
       static ImGuiTableFlags table_flags =
-            ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_MultiSortable
+            ImGuiTableFlags_Resizable | ImGuiTableFlags_MultiSortable
             | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV
             | ImGuiTableFlags_ScrollY;
-      if (ImGui::BeginTable(" ", 7, table_flags, ImVec2(0, 250), 0.0f)) {
+      if (ImGui::BeginTable("blocks", 7, table_flags, ImVec2(0, window_h - 200), 0.0f)) {
         /* Create columns */
         ImGui::TableSetupColumn(headers[0], ImGuiTableColumnFlags_DefaultSort          | ImGuiTableColumnFlags_WidthStretch, -1.0f);
         ImGui::TableSetupColumn(headers[1], ImGuiTableColumnFlags_NoSort               | ImGuiTableColumnFlags_WidthFixed,   -1.0f);
@@ -209,14 +211,16 @@ int main(int, char**)
       }
 
       /* Table footer */
-      if (ImGui::BeginTable("footer", 7, table_flags, ImVec2(0, 34), 0.0f)) {
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, -1.0f);
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed,   -1.0f);
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed,   -1.0f);
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed,   -1.0f);
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed,   -1.0f);
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed,   -1.0f);
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed,   -1.0f);
+      static ImGuiTableFlags footer_flags =
+            ImGuiTableFlags_Resizable | ImGuiTableFlags_MultiSortable | ImGuiTableFlags_BordersOuter;
+      if (ImGui::BeginTable("footer", 7, footer_flags, ImVec2(0, 34), 0.0f)) {
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthStretch, -1.0f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthStretch, -1.0f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthStretch, -1.0f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthStretch, -1.0f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthStretch, -1.0f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthStretch, -1.0f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthStretch, -1.0f);
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -241,7 +245,7 @@ int main(int, char**)
     }
 
     {
-      create_window(0, HEIGHT - 24, WIDTH, 24);
+      create_window("footer", 0, HEIGHT - 24, WIDTH, 24);
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
       ImGui::End();
     }
