@@ -23,7 +23,7 @@ static void glfw_error_callback(int error, const char* description)
 
 static void HelpMarker(const char* desc)
 {
-    ImGui::TextDisabled("(?)");
+    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "(?)");
     if (ImGui::IsItemHovered())
     {
         ImGui::BeginTooltip();
@@ -43,6 +43,26 @@ static void create_window(const char* window_name, int window_x, int window_y, i
   ImGui::SetNextWindowPos(ImVec2(window_x, window_y), ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize(ImVec2(window_w, window_h), ImGuiCond_FirstUseEver);
   ImGui::Begin(window_name, NULL, window_flags);
+}
+
+static void make_table(const char* name, int rows, int cols, const char** row_headers, const char** col_headers) {
+  ImGuiTableFlags flags = ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersOuter;
+  if (ImGui::BeginTable(name, cols, flags, ImVec2(0, ImGui::GetTextLineHeightWithSpacing() * rows))) {
+    for (int i = 0; i < cols; i++) {
+      ImGui::TableSetupColumn(col_headers[i]);
+    }
+    ImGui::TableHeadersRow();
+    for (int i = 0; i < rows - 1; i++) {
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("%s", row_headers[i]);
+      for (int j = 0; j < cols - 1; j++) {
+        ImGui::TableNextColumn();
+        ImGui::Text("100");
+      }
+    }
+    ImGui::EndTable();
+  }
 }
 
 int main(int, char**)
@@ -120,6 +140,83 @@ int main(int, char**)
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
+    const char* s_tabs[6]   = { "SI", "S", "SU", "SL", "?", "!" };
+    const char* s_types[3]  = { "Levels", "Episodes", "Stories" };
+    const char* s_modes[4]  = { "Solo", "Coop", "Race", "Hardcore" };
+    int win1_x = 0;
+    int win1_y = 0;
+    int win1_w = 400;
+    int win1_h = 600;
+    int win2_x = win1_x + win1_w;
+    int win2_y = 0;
+    int win2_w = 600;
+    int win2_h = 600;
+
+    {
+      create_window("scores", win1_x, win1_y, win1_w, win1_h);
+      ImGui::Text("HIGHSCORE ANALYSIS | Loaded: "); ImGui::SameLine();
+      ImGui::Text("None"); ImGui::SameLine(ImGui::GetWindowWidth() - 30);
+      HelpMarker("This section will analyze the highscores from the server. \
+                  You first have to load some scores, either by downloading them, \
+                  or by loading them from a file. You can then save these scores \
+                  to be able to load them at a later point (recommended).");
+      ImGui::SmallButton("Download scores"); ImGui::SameLine();
+      ImGui::SmallButton("Load scores"); ImGui::SameLine();
+      ImGui::SmallButton("Save scores");
+
+      char buf[32];
+      sprintf(buf, "%d/%d", 0, 2550);
+      ImGui::ProgressBar(0.0f, ImVec2(-1.0f, 0.0f), buf);
+
+      ImGui::Separator();
+
+      ImGui::Text("Personal highscoring summary:"); ImGui::SameLine(ImGui::GetWindowWidth() - 30);
+      HelpMarker("Solo includes both levels and episodes from solo mode, that \
+                  is, the standard highscoring metric used in the community.");
+      const char* row_headers[7] = { "SI", "S", "SU", "SL", "?", "!", "Total" };
+      const char* col_headers[5] = { "Tabs", "Top20", "Top10", "Top5", "0th" };
+      ImGuiTabBarFlags tab_flags = ImGuiTabBarFlags_None;
+      if (ImGui::BeginTabBar("stat_tabs", tab_flags)) {
+        if (ImGui::BeginTabItem("Solo")) {
+          make_table("solo", 8, 5, row_headers, col_headers);
+          ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Levels")) {
+          make_table("levels", 8, 5, row_headers, col_headers);
+          ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Episodes")) {
+          make_table("episodes", 8, 5, row_headers, col_headers);
+          ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Stories")) {
+          make_table("stories", 8, 5, row_headers, col_headers);
+          ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
+      }
+
+      ImGui::Separator();
+      ImGui::Text("Global highscoring summary:"); ImGui::SameLine(ImGui::GetWindowWidth() - 30);
+      HelpMarker("'Total score' adds up all your scores in each tab. 'Points' \
+                  awards points for each highscore you have: 20 points for a 0th, \
+                  19 for 1st... up to 1 for 19th.");
+      const char* col_headers2[5] = { "Tabs", "Level", "Episode", "Story", "Total" };
+      if (ImGui::BeginTabBar("varied_tabs", tab_flags)) {
+        if (ImGui::BeginTabItem("Total score")) {
+          make_table("total_score", 8, 5, row_headers, col_headers2);
+          ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Points")) {
+          make_table("points", 8, 5, row_headers, col_headers2);
+          ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
+      }
+
+      ImGui::End();
+    }
+
     {
       /* Data */
       static bool tabs[6]     = { true, true, true, true, true, true };
@@ -129,28 +226,21 @@ int main(int, char**)
       static bool orders[7]   = { true, false, false, false, false, false, false };
       static bool rev_order   = false;
       const char* titles[4]   = { "Tabs", "Types", "Modes", "States" };
-      const char* s_tabs[6]   = { "SI", "S", "SU", "SL", "?", "!" };
-      const char* s_types[3]  = { "Levels", "Episodes", "Stories" };
-      const char* s_modes[4]  = { "Solo", "Coop", "Race", "Hardcore" };
       const char* s_states[3] = { "Locked", "Unlocked", "Completed" };
       const char* headers[7]  = { "ID", "State", "Atts.", "Vics.", "Gold", "Score", "Rank" };
-      int window_x            = 0;
-      int window_y            = 0;
-      int window_w            = 600;
-      int window_h            = 600;
       int col0_width          = 77;
       int col0_offset         = 8;
       int col_width           = 85;
       int coln_width          = 55;
 
       /* Header */
-      create_window("savefile", window_x, window_y, window_w, window_h);
-      ImGui::Text("SAVEFILE ANALYSIS"); ImGui::SameLine();
-      ImGui::SmallButton("Open savefile"); ImGui::SameLine();
-      ImGui::Text("Username"); ImGui::SameLine(ImGui::GetWindowWidth() - 30);
+      create_window("savefile", win2_x, win2_y, win2_w, win2_h);
+      ImGui::Text("SAVEFILE ANALYSIS | Loaded: "); ImGui::SameLine();
+      ImGui::Text("None"); ImGui::SameLine(ImGui::GetWindowWidth() - 30);
       HelpMarker("This section will analyze your savefile and provide stats. \
                   You first need to load it by clicking on 'Open savefile'. \
                   If you don't know where the savefile is located, click on the 'Help' menu.");
+      ImGui::SmallButton("Open savefile");
 
       /* Checkboxes */
       ImGui::Columns(4);
@@ -175,7 +265,7 @@ int main(int, char**)
             ImGuiTableFlags_Resizable | ImGuiTableFlags_MultiSortable
             | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV
             | ImGuiTableFlags_ScrollY;
-      if (ImGui::BeginTable("blocks", 7, table_flags, ImVec2(0, window_h - 200), 0.0f)) {
+      if (ImGui::BeginTable("blocks", 7, table_flags, ImVec2(0, win2_h - 200), 0.0f)) {
         /* Create columns */
         ImGui::TableSetupColumn(headers[0], ImGuiTableColumnFlags_DefaultSort          | ImGuiTableColumnFlags_WidthStretch, -1.0f);
         ImGui::TableSetupColumn(headers[1], ImGuiTableColumnFlags_NoSort               | ImGuiTableColumnFlags_WidthFixed,   -1.0f);
@@ -211,9 +301,8 @@ int main(int, char**)
       }
 
       /* Table footer */
-      static ImGuiTableFlags footer_flags =
-            ImGuiTableFlags_Resizable | ImGuiTableFlags_MultiSortable | ImGuiTableFlags_BordersOuter;
-      if (ImGui::BeginTable("footer", 7, footer_flags, ImVec2(0, 34), 0.0f)) {
+      static ImGuiTableFlags footer_flags = ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersOuter;
+      if (ImGui::BeginTable("footer", 7, footer_flags, ImVec2(0, ImGui::GetTextLineHeightWithSpacing() * 2), 0.0f)) {
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthStretch, -1.0f);
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthStretch, -1.0f);
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthStretch, -1.0f);
@@ -245,7 +334,9 @@ int main(int, char**)
     }
 
     {
-      create_window("footer", 0, HEIGHT - 24, WIDTH, 24);
+      int height = 30;
+      create_window("footer", 0, HEIGHT - height, WIDTH, height);
+      ImGui::Text("NProfiler v1.0 - Eddy, 2020/10/11."); ImGui::SameLine();
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
       ImGui::End();
     }
