@@ -4,7 +4,7 @@ SOURCE   = src/*.cpp src/*/*.c src/*/*.cpp
 TARGET   = bin/imgui
 CC       = g++
 CPPFLAGS = -Iinclude -Isrc
-CXXFLAGS = `pkg-config --cflags glfw3`
+CXXFLAGS = -DIMGUI_IMPL_OPENGL_LOADER_GL3W `pkg-config --cflags glfw3`
 LDFLAGS  = -Llib -lGL `pkg-config --static --libs glfw3`
 
 build:

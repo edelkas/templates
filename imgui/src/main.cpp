@@ -4,8 +4,8 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-#include <gl3w/gl3w.h>  // Initialize with gl3wInit()
-#include <glfw/glfw3.h> // Include glfw3.h after our OpenGL definitions
+#include <GL/gl3w.h>  // Initialize with gl3wInit()
+#include <GLFW/glfw3.h> // Include glfw3.h after our OpenGL definitions
 
 #define NAME   "NProfiler"
 #define WIDTH  1280
@@ -139,8 +139,10 @@ int main(int, char**)
       int window_y            = 0;
       int window_w            = 600;
       int window_h            = 500;
-      int col_width           = 75;
-      int col_offset          = 10;
+      int col0_width          = 77;
+      int col0_offset         = 8;
+      int col_width           = 85;
+      int coln_width          = 55;
 
       /* Header */
       create_window(window_x, window_y, window_w, window_h);
@@ -167,7 +169,7 @@ int main(int, char**)
 
       /* Table headers */
       ImGui::Columns(7);
-      ImGui::SetColumnWidth(0, col_width + col_offset);
+      ImGui::SetColumnWidth(0, col0_width + col0_offset);
       ImGui::Separator();
       for (int i = 0; i < 7; i++) {
         bool highlight = orders[i];
@@ -194,11 +196,28 @@ int main(int, char**)
 
       /* Table contents */
       ImGui::Columns(1);
-      ImGui::Separator();
+      static ImGuiTableFlags table_flags =
+            ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_MultiSortable
+            | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV
+            | ImGuiTableFlags_ScrollY;
+      if (ImGui::BeginTable(" ", 7, table_flags, ImVec2(0, 250), 0.0f)) {
+        ImGui::TableSetupColumn(headers[0], ImGuiTableColumnFlags_DefaultSort          | ImGuiTableColumnFlags_WidthStretch, -1.0f, MainTableID);
+        ImGui::TableSetupColumn(headers[1], ImGuiTableColumnFlags_NoSort               | ImGuiTableColumnFlags_WidthFixed,   -1.0f, MainTableState);
+        ImGui::TableSetupColumn(headers[2], ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,   -1.0f, MainTableAttempts);
+        ImGui::TableSetupColumn(headers[3], ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,   -1.0f, MainTableVictories);
+        ImGui::TableSetupColumn(headers[4], ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,   -1.0f, MainTableGold);
+        ImGui::TableSetupColumn(headers[5], ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,   -1.0f, MainTableScore);
+        ImGui::TableSetupColumn(headers[6],                                            | ImGuiTableColumnFlags_WidthFixed,   -1.0f, MainTableRank);
+      }
+/*      ImGui::Separator();
       ImGui::BeginChild(" ", ImVec2(window_w - 20, window_h - 225));
       ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
       ImGui::Columns(7);
-      ImGui::SetColumnWidth(0, col_width);
+      ImGui::SetColumnWidth(0, col0_width);
+      for (int i = 1; i < 6; i++) {
+        ImGui::SetColumnWidth(i, col_width);
+      }
+      ImGui::SetColumnWidth(6, coln_width);
       for (int i = 0; i < 2000; i++) {
         for (int j = 0; j < 7; j++) {
           if (j == 0) {
@@ -211,10 +230,10 @@ int main(int, char**)
       }
       ImGui::PopStyleVar();
       ImGui::EndChild();
-
+*/
       /* Table footer */
       ImGui::Columns(7);
-      ImGui::SetColumnWidth(0, col_width + col_offset);
+      ImGui::SetColumnWidth(0, col0_width + col0_offset);
       ImGui::Separator();
       ImGui::Text("Total"); ImGui::NextColumn(); ImGui::NextColumn();
       ImGui::Text("Many"); ImGui::NextColumn();
