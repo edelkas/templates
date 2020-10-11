@@ -167,85 +167,76 @@ int main(int, char**)
       }
       ImGui::PopStyleVar(2);
 
-      /* Table headers */
-      ImGui::Columns(7);
-      ImGui::SetColumnWidth(0, col0_width + col0_offset);
-      ImGui::Separator();
-      for (int i = 0; i < 7; i++) {
-        bool highlight = orders[i];
-        if (highlight) {
-          int c = rev_order ? 0 : 2;
-          ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(c / 7.0f, 0.6f, 0.6f));
-          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(c / 7.0f, 0.7f, 0.7f));
-          ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(c / 7.0f, 0.8f, 0.8f));
-        }
-        if (ImGui::SmallButton("^")) {
-          if (highlight) {
-            rev_order = !rev_order;
-          } else {
-            for (int j = 0; j < 7; j++) orders[j] = false;
-            orders[i] = true;
-            rev_order = false;
-          }
-        }
-        if (highlight) ImGui::PopStyleColor(3);
-        ImGui::SameLine();
-        ImGui::Text("%s", headers[i]);
-        ImGui::NextColumn();
-      }
-
-      /* Table contents */
+      /* Table */
       ImGui::Columns(1);
       static ImGuiTableFlags table_flags =
             ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_MultiSortable
             | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV
             | ImGuiTableFlags_ScrollY;
       if (ImGui::BeginTable(" ", 7, table_flags, ImVec2(0, 250), 0.0f)) {
-        ImGui::TableSetupColumn(headers[0], ImGuiTableColumnFlags_DefaultSort          | ImGuiTableColumnFlags_WidthStretch, -1.0f, MainTableID);
-        ImGui::TableSetupColumn(headers[1], ImGuiTableColumnFlags_NoSort               | ImGuiTableColumnFlags_WidthFixed,   -1.0f, MainTableState);
-        ImGui::TableSetupColumn(headers[2], ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,   -1.0f, MainTableAttempts);
-        ImGui::TableSetupColumn(headers[3], ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,   -1.0f, MainTableVictories);
-        ImGui::TableSetupColumn(headers[4], ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,   -1.0f, MainTableGold);
-        ImGui::TableSetupColumn(headers[5], ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,   -1.0f, MainTableScore);
-        ImGui::TableSetupColumn(headers[6],                                            | ImGuiTableColumnFlags_WidthFixed,   -1.0f, MainTableRank);
-      }
-/*      ImGui::Separator();
-      ImGui::BeginChild(" ", ImVec2(window_w - 20, window_h - 225));
-      ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-      ImGui::Columns(7);
-      ImGui::SetColumnWidth(0, col0_width);
-      for (int i = 1; i < 6; i++) {
-        ImGui::SetColumnWidth(i, col_width);
-      }
-      ImGui::SetColumnWidth(6, coln_width);
-      for (int i = 0; i < 2000; i++) {
-        for (int j = 0; j < 7; j++) {
-          if (j == 0) {
-            ImGui::Text("SI-A-00-00");
-          } else {
-            ImGui::Text(" (%d, %d)", i, j);
+        /* Create columns */
+        ImGui::TableSetupColumn(headers[0], ImGuiTableColumnFlags_DefaultSort          | ImGuiTableColumnFlags_WidthStretch, -1.0f);
+        ImGui::TableSetupColumn(headers[1], ImGuiTableColumnFlags_NoSort               | ImGuiTableColumnFlags_WidthFixed,   -1.0f);
+        ImGui::TableSetupColumn(headers[2], ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,   -1.0f);
+        ImGui::TableSetupColumn(headers[3], ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,   -1.0f);
+        ImGui::TableSetupColumn(headers[4], ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,   -1.0f);
+        ImGui::TableSetupColumn(headers[5], ImGuiTableColumnFlags_PreferSortDescending | ImGuiTableColumnFlags_WidthFixed,   -1.0f);
+        ImGui::TableSetupColumn(headers[6],                                              ImGuiTableColumnFlags_WidthFixed,   -1.0f);
+        ImGui::TableSetupScrollFreeze(0, 1); // Header always visible after scrolling
+
+        /* Sort data */
+        if (ImGuiTableSortSpecs* sorts_specs = ImGui::TableGetSortSpecs()) {
+          if (sorts_specs->SpecsDirty) { // Detect if sorting is required
+            // Sort here!
+            sorts_specs->SpecsDirty = false;
           }
-          ImGui::NextColumn();
         }
+
+        /* Display data */
+        ImGui::TableHeadersRow();
+        for (int i = 0; i < 2000; i++) {
+          ImGui::TableNextRow();
+          for (int j = 0; j < 7; j++) {
+            ImGui::TableNextColumn();
+            if (j == 0) {
+              ImGui::Text("SI-A-00-00");
+            } else {
+              ImGui::Text(" (%d, %d)", i, j);
+            }
+          }
+        }
+        ImGui::EndTable();
       }
-      ImGui::PopStyleVar();
-      ImGui::EndChild();
-*/
+
       /* Table footer */
-      ImGui::Columns(7);
-      ImGui::SetColumnWidth(0, col0_width + col0_offset);
-      ImGui::Separator();
-      ImGui::Text("Total"); ImGui::NextColumn(); ImGui::NextColumn();
-      ImGui::Text("Many"); ImGui::NextColumn();
-      ImGui::Text("Lots"); ImGui::NextColumn();
-      ImGui::Text("Abundant"); ImGui::NextColumn();
-      ImGui::Text("Seconds"); ImGui::NextColumn(); ImGui::NextColumn();
-      ImGui::Text("Avg."); ImGui::NextColumn(); ImGui::NextColumn();
-      ImGui::Text("Many"); ImGui::NextColumn();
-      ImGui::Text("Lots"); ImGui::NextColumn();
-      ImGui::Text("Abundant"); ImGui::NextColumn();
-      ImGui::Text("Seconds"); ImGui::NextColumn();
-      ImGui::Text("0th"); ImGui::NextColumn();
+      if (ImGui::BeginTable("footer", 7, table_flags, ImVec2(0, 34), 0.0f)) {
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, -1.0f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed,   -1.0f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed,   -1.0f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed,   -1.0f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed,   -1.0f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed,   -1.0f);
+        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed,   -1.0f);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Total"); ImGui::TableNextColumn(); ImGui::TableNextColumn();
+        ImGui::Text("Many"); ImGui::TableNextColumn();
+        ImGui::Text("Lots"); ImGui::TableNextColumn();
+        ImGui::Text("Abundant"); ImGui::TableNextColumn();
+        ImGui::Text("Seconds"); ImGui::TableNextColumn();
+
+        ImGui::TableNextRow(); ImGui::TableNextColumn();
+        ImGui::Text("Avg."); ImGui::TableNextColumn(); ImGui::TableNextColumn();
+        ImGui::Text("Many"); ImGui::TableNextColumn();
+        ImGui::Text("Lots"); ImGui::TableNextColumn();
+        ImGui::Text("Abundant"); ImGui::TableNextColumn();
+        ImGui::Text("Seconds"); ImGui::TableNextColumn();
+        ImGui::Text("0th");
+
+        ImGui::EndTable();
+      }
+
       ImGui::End();
     }
 
