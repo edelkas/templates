@@ -9,7 +9,7 @@
 
 #define NAME   "NProfiler"
 #define WIDTH  1280
-#define HEIGHT 720
+#define HEIGHT 650
 
 // Win32 exceptions
 #if defined(_MSC_VER) && (_MSC_VER >= 1900) && !defined(IMGUI_DISABLE_WIN32_FUNCTIONS)
@@ -36,8 +36,19 @@ static void HelpMarker(const char* desc) {
   Tooltip(desc);
 }
 
+static void RangeInt(int* counter, int padding, int limitinf, int limitsup, const char* header = "") {
+  ImGui::PushButtonRepeat(true);
+  if (ImGui::ArrowButton("##left", ImGuiDir_Left) && *counter > limitinf) *counter--;
+  ImGui::SameLine();
+  ImGui::Text("%s%0*d", header, padding, *counter);
+  ImGui::SameLine();
+  if (ImGui::ArrowButton("##right", ImGuiDir_Right) && *counter < limitsup) *counter++;
+  ImGui::PopButtonRepeat();
+}
+
 static void create_window(const char* window_name, int window_x, int window_y, int window_w, int window_h) {
   ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar |
+                                  ImGuiWindowFlags_NoScrollbar |
                                   ImGuiWindowFlags_NoMove |
                                   ImGuiWindowFlags_NoResize |
                                   ImGuiWindowFlags_NoCollapse |
@@ -168,11 +179,11 @@ int main(int, char**)
     int win1_x = 0;
     int win1_y = 0;
     int win1_w = 640;
-    int win1_h = 690;
+    int win1_h = ImGui::GetTextLineHeightWithSpacing() * 36.5;
     int win2_x = win1_x + win1_w;
     int win2_y = 0;
     int win2_w = 640;
-    int win2_h = 690;
+    int win2_h = ImGui::GetTextLineHeightWithSpacing() * 36.5;
     int win3_x = 0;
     int win3_y = win1_x + win1_h;
     int win3_w = WIDTH;
@@ -246,41 +257,256 @@ int main(int, char**)
           ImGui::EndTabBar();
         }
 
-        ImGui::TableNextColumn();
-
-        ImGui::Text("          GLOBAL HIGHSCORING STATS");
-        if (ImGui::BeginTabBar("global_tabs", tab_flags)) {
-          if (ImGui::BeginTabItem("Leaderboards")) {
-            const char* col_headers3[3] = { "Rank", "Player", "Score" };
-            make_leaderboard("leaderboards", col_headers3);
-            ImGui::EndTabItem();
-          }
-          if (ImGui::BeginTabItem("Rankings")) {
-            const char* col_headers3[3] = { "Rank", "Player", "Count" };
-            make_leaderboard("rankings", col_headers3);
-            ImGui::EndTabItem();
-          }
-          if (ImGui::BeginTabItem("Spreads")) {
-            const char* col_headers3[3] = { "Rank", "Player", "Time" };
-            make_leaderboard("spreads", col_headers3);
-            ImGui::EndTabItem();
-          }
-          ImGui::EndTabBar();
-        }
-
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-
         static float arr[] = {
            0.0f,   1.0f,  5.0f, 12.0f, 17.0f,
           35.0f,  56.0f, 43.0f, 43.0f, 30.0f,
           25.0f,  28.0f, 37.0f, 68.0f, 78.0f,
           89.0f, 100.0f, 90.0f, 80.0f, 85.0f
         };
-        ImGui::PlotHistogram("Histogram", arr, IM_ARRAYSIZE(arr), 0, NULL, 0, 100, ImVec2(0, 200));
+        ImGui::PlotHistogram("", arr, IM_ARRAYSIZE(arr), 0, NULL, 0, 100, ImVec2(ImGui::GetContentRegionAvail().x * 1.0f, 200));
 
         ImGui::TableNextColumn();
 
+        ImGui::Text("          GLOBAL HIGHSCORING STATS");
+        if (ImGui::BeginTabBar("global_tabs", tab_flags)) {
+          if (ImGui::BeginTabItem("Leaderboards")) {
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 0));
+            if (ImGui::BeginTable("g_leaderboards", 2, ImGuiTableFlags_SizingPolicyFixedX | ImGuiTableFlags_BordersInnerV)) {
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text("Type"); ImGui::TableNextColumn();
+              static int leaderboard_type = 0;
+              ImGui::RadioButton("Level", &leaderboard_type, 0); ImGui::SameLine();
+              ImGui::RadioButton("Episode", &leaderboard_type, 1); ImGui::SameLine();
+              ImGui::RadioButton("Story", &leaderboard_type, 2);
+
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text("Tab"); ImGui::TableNextColumn();
+              static int leaderboard_tab = 0;
+              ImGui::RadioButton("SI", &leaderboard_tab, 0); ImGui::SameLine();
+              ImGui::RadioButton("S",  &leaderboard_tab, 1); ImGui::SameLine();
+              ImGui::RadioButton("SU", &leaderboard_tab, 2); ImGui::SameLine();
+              ImGui::RadioButton("SL", &leaderboard_tab, 3); ImGui::SameLine();
+              ImGui::RadioButton("?",  &leaderboard_tab, 4); ImGui::SameLine();
+              ImGui::RadioButton("!",  &leaderboard_tab, 5);
+
+              // TODO: Disable this if we're on stories
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text("Row"); ImGui::TableNextColumn();
+              static int leaderboard_row = 0;
+              ImGui::RadioButton("A", &leaderboard_row, 0); ImGui::SameLine();
+              ImGui::RadioButton("B", &leaderboard_row, 1); ImGui::SameLine();
+              ImGui::RadioButton("C", &leaderboard_row, 2); ImGui::SameLine();
+              ImGui::RadioButton("D", &leaderboard_row, 3); ImGui::SameLine();
+              ImGui::RadioButton("E", &leaderboard_row, 4); ImGui::SameLine();
+              ImGui::RadioButton("X", &leaderboard_row, 5);
+
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text("Column"); ImGui::TableNextColumn();
+              static int leaderboard_col = 0;
+              ImGui::PushButtonRepeat(true);
+              if (ImGui::ArrowButton("##left", ImGuiDir_Left) && leaderboard_col > 0) leaderboard_col--;
+              ImGui::SameLine();
+              ImGui::Text("%02d", leaderboard_col);
+              ImGui::SameLine();
+              if (ImGui::ArrowButton("##right", ImGuiDir_Right) && leaderboard_col < 19) leaderboard_col++;
+              ImGui::PopButtonRepeat();
+
+              // TODO: Disable this if we're on episodes or stories
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text("Level"); ImGui::TableNextColumn();
+              static int leaderboard_level = 0;
+              ImGui::RadioButton("00", &leaderboard_level, 0); ImGui::SameLine();
+              ImGui::RadioButton("01", &leaderboard_level, 1); ImGui::SameLine();
+              ImGui::RadioButton("02", &leaderboard_level, 2); ImGui::SameLine();
+              ImGui::RadioButton("03", &leaderboard_level, 3); ImGui::SameLine();
+              ImGui::RadioButton("04", &leaderboard_level, 4);
+
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text(" ");
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text(" ");
+
+              ImGui::EndTable();
+            }
+            static int leaderboard_board;
+            ImGui::Text(" "); ImGui::SameLine(ImGui::GetContentRegionAvail().x * 0.35f);
+            ImGui::PushButtonRepeat(true);
+            if (ImGui::ArrowButton("##left", ImGuiDir_Left) && leaderboard_board > 0) leaderboard_board--;
+            ImGui::SameLine();
+            ImGui::Text("%010d", leaderboard_board); ImGui::SameLine();
+            if (ImGui::ArrowButton("##right", ImGuiDir_Right) && leaderboard_board < 599) leaderboard_board++;
+            ImGui::PopButtonRepeat();
+            ImGui::PopStyleVar();
+
+            const char* col_headers3[3] = { "Rank", "Player", "Score" };
+            make_leaderboard("leaderboards", col_headers3);
+            ImGui::EndTabItem();
+          }
+          if (ImGui::BeginTabItem("Rankings")) {
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 0));
+            if (ImGui::BeginTable("g_rankings", 2, ImGuiTableFlags_SizingPolicyFixedX | ImGuiTableFlags_BordersInnerV)) {
+              static bool tabs[6] = { true, true, true, true, true, true };
+              static bool types[3] = { true, true, false };
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text("Types"); ImGui::TableNextColumn();
+              ImGui::Checkbox("Levels",   &types[0]); ImGui::SameLine();
+              ImGui::Checkbox("Episodes", &types[1]); ImGui::SameLine();
+              ImGui::Checkbox("Stories",  &types[2]);
+
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text("Tabs"); ImGui::TableNextColumn();
+              ImGui::Checkbox("SI", &tabs[0]); ImGui::SameLine();
+              ImGui::Checkbox("S",  &tabs[1]); ImGui::SameLine();
+              ImGui::Checkbox("SU", &tabs[2]); ImGui::SameLine();
+              ImGui::Checkbox("SL", &tabs[3]); ImGui::SameLine();
+              ImGui::Checkbox("?",  &tabs[4]); ImGui::SameLine();
+              ImGui::Checkbox("!",  &tabs[5]);
+
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text("Ranking"); ImGui::TableNextColumn();
+              static int ranking = 0;
+              static int ranking_rank = 3;
+              ImGui::RadioButton("0ths",           &ranking, 0); ImGui::SameLine();
+              ImGui::RadioButton("Top20s",         &ranking, 1); ImGui::SameLine();
+              ImGui::RadioButton("Top10s",         &ranking, 2); ImGui::SameLine();
+              ImGui::RadioButton("Top5s",          &ranking, 3);
+              ImGui::RadioButton("Total score",    &ranking, 4); ImGui::SameLine();
+              ImGui::RadioButton("Total points",   &ranking, 5);
+              ImGui::RadioButton("Avg. points",    &ranking, 6); ImGui::SameLine();
+              ImGui::RadioButton("Other:",         &ranking, 7); ImGui::SameLine();
+              RangeInt(&ranking_rank, 2, 0, 19, "Top "); // TODO: Disable this if ranking_rank != 7
+
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text("Ties"); ImGui::TableNextColumn();
+              static int ranking_ties = 0;
+              ImGui::RadioButton("Yes", &ranking_ties, 0); ImGui::SameLine();
+              ImGui::RadioButton("No",  &ranking_ties, 1);
+
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text(" ");
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text(" ");
+
+              ImGui::EndTable();
+            }
+            ImGui::PopStyleVar();
+            const char* col_headers3[3] = { "Rank", "Player", "Count" };
+            make_leaderboard("rankings", col_headers3);
+            ImGui::EndTabItem();
+          }
+          if (ImGui::BeginTabItem("Spreads")) {
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 0));
+            if (ImGui::BeginTable("g_spreads", 2, ImGuiTableFlags_SizingPolicyFixedX | ImGuiTableFlags_BordersInnerV)) {
+              static bool tabs[6] = { true, true, true, true, true, true };
+              static bool types[3] = { true, true, false };
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text("Types"); ImGui::TableNextColumn();
+              ImGui::Checkbox("Levels",   &types[0]); ImGui::SameLine();
+              ImGui::Checkbox("Episodes", &types[1]); ImGui::SameLine();
+              ImGui::Checkbox("Stories",  &types[2]);
+
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text("Tabs"); ImGui::TableNextColumn();
+              ImGui::Checkbox("SI", &tabs[0]); ImGui::SameLine();
+              ImGui::Checkbox("S",  &tabs[1]); ImGui::SameLine();
+              ImGui::Checkbox("SU", &tabs[2]); ImGui::SameLine();
+              ImGui::Checkbox("SL", &tabs[3]); ImGui::SameLine();
+              ImGui::Checkbox("?",  &tabs[4]); ImGui::SameLine();
+              ImGui::Checkbox("!",  &tabs[5]);
+
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text("Order"); ImGui::TableNextColumn();
+              static int spread_order = 0;
+              ImGui::RadioButton("Biggest", &spread_order, 0); ImGui::SameLine();
+              ImGui::RadioButton("Smallest",  &spread_order, 1);
+
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text("Range"); ImGui::TableNextColumn();
+              static int spread_range_inf = 0;
+              static int spread_range_sup = 19;
+              ImGui::Text("From "); ImGui::SameLine();
+              RangeInt(&spread_range_inf, 2, 0, 19, ""); ImGui::SameLine();
+              ImGui::Text(" to "); ImGui::SameLine();
+              RangeInt(&spread_range_sup, 2, 0, 19, "");
+
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text(" ");
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text(" ");
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text(" ");
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text(" ");
+
+              ImGui::EndTable();
+            }
+            ImGui::PopStyleVar();
+            const char* col_headers3[3] = { "Rank", "Player", "Time" };
+            make_leaderboard("spreads", col_headers3);
+            ImGui::EndTabItem();
+          }
+          if (ImGui::BeginTabItem("Lists")) {
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 0));
+            if (ImGui::BeginTable("g_lists", 2, ImGuiTableFlags_SizingPolicyFixedX | ImGuiTableFlags_BordersInnerV)) {
+              static bool tabs[6] = { true, true, true, true, true, true };
+              static bool types[3] = { true, true, false };
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text("Types"); ImGui::TableNextColumn();
+              ImGui::Checkbox("Levels",   &types[0]); ImGui::SameLine();
+              ImGui::Checkbox("Episodes", &types[1]); ImGui::SameLine();
+              ImGui::Checkbox("Stories",  &types[2]);
+
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text("Tabs"); ImGui::TableNextColumn();
+              ImGui::Checkbox("SI", &tabs[0]); ImGui::SameLine();
+              ImGui::Checkbox("S",  &tabs[1]); ImGui::SameLine();
+              ImGui::Checkbox("SU", &tabs[2]); ImGui::SameLine();
+              ImGui::Checkbox("SL", &tabs[3]); ImGui::SameLine();
+              ImGui::Checkbox("?",  &tabs[4]); ImGui::SameLine();
+              ImGui::Checkbox("!",  &tabs[5]);
+
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text("List"); ImGui::TableNextColumn();
+              static int list = 0;
+              static int list_rank = 3;
+              if (ImGui::BeginTable("g_lists_internal", 2, ImGuiTableFlags_SizingPolicyFixedX)) {
+                ImGui::TableNextRow(); ImGui::TableNextColumn();
+                ImGui::RadioButton("Top20s",         &list, 0); ImGui::TableNextColumn();
+                ImGui::RadioButton("Missing Top20s", &list, 1);
+                ImGui::TableNextRow(); ImGui::TableNextColumn();
+                ImGui::RadioButton("Top10s",         &list, 2); ImGui::TableNextColumn();
+                ImGui::RadioButton("Missing Top10s", &list, 3);
+                ImGui::TableNextRow(); ImGui::TableNextColumn();
+                ImGui::RadioButton("Top5s",          &list, 4); ImGui::TableNextColumn();
+                ImGui::RadioButton("Missing Top5s",  &list, 5);
+                ImGui::TableNextRow(); ImGui::TableNextColumn();
+                ImGui::RadioButton("0ths",           &list, 6); ImGui::TableNextColumn();
+                ImGui::RadioButton("Missing 0ths",   &list, 7);
+                ImGui::EndTable();
+              }
+              ImGui::RadioButton("Other:",         &list, 8); ImGui::SameLine();
+              static int list_range_inf = 0;
+              static int list_range_sup = 19;
+              ImGui::Text("From "); ImGui::SameLine();
+              RangeInt(&list_range_inf, 2, 0, 19, ""); ImGui::SameLine();
+              ImGui::Text(" to "); ImGui::SameLine();
+              RangeInt(&list_range_sup, 2, 0, 19, ""); // TODO: Disable this if ranking_rank != 8
+
+              ImGui::TableNextRow(); ImGui::TableNextColumn();
+              ImGui::Text("Ties"); ImGui::TableNextColumn();
+              static int ranking_ties = 0;
+              ImGui::RadioButton("Yes", &ranking_ties, 0); ImGui::SameLine();
+              ImGui::RadioButton("No",  &ranking_ties, 1);
+
+              ImGui::EndTable();
+            }
+            ImGui::PopStyleVar();
+            const char* col_headers4[3] = { "Rank", "Player", "Score" };
+            make_leaderboard("lists", col_headers4);
+            ImGui::EndTabItem();
+          }
+          ImGui::EndTabBar();
+        }
         ImGui::EndTable();
       }
 
@@ -298,10 +524,7 @@ int main(int, char**)
       const char* titles[4]   = { "Tabs", "Types", "Modes", "States" };
       const char* s_states[3] = { "Locked", "Unlocked", "Completed" };
       const char* headers[7]  = { "ID", "State", "Atts.", "Vics.", "Gold", "Score", "Rank" };
-      int col0_width          = 77;
-      int col0_offset         = 8;
-      int col_width           = 85;
-      int coln_width          = 55;
+      int table_lines         = 25;
 
       /* Header */
       create_window("savefile", win2_x, win2_y, win2_w, win2_h);
@@ -336,7 +559,7 @@ int main(int, char**)
             ImGuiTableFlags_Resizable | ImGuiTableFlags_MultiSortable
             | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV
             | ImGuiTableFlags_ScrollY;
-      if (ImGui::BeginTable("blocks", 7, table_flags, ImVec2(0, win2_h - 200), 0.0f)) {
+      if (ImGui::BeginTable("blocks", 7, table_flags, ImVec2(0, ImGui::GetTextLineHeightWithSpacing() * table_lines), 0.0f)) {
         /* Create columns */
         ImGui::TableSetupColumn(headers[0], ImGuiTableColumnFlags_DefaultSort          | ImGuiTableColumnFlags_WidthStretch, -1.0f);
         ImGui::TableSetupColumn(headers[1], ImGuiTableColumnFlags_NoSort               | ImGuiTableColumnFlags_WidthFixed,   -1.0f);

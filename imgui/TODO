@@ -1,6 +1,8 @@
+* Fix RangeInt not working.
 * When switching between the "Total score" and "Points" tabs, the leaderboards
   move up and down, hence causing the plots to move as well. FIX!
 * Add the plot, and possibly tabs or comboboxes to choose what to plot.
+* Check how to disable widgets.
 * On the global highscoring stats part, we need to add more space before the
   table to put filters by tab and type, which can be done withy  checkboxes.
   These are needed for the rankings and spreads, but not for leaderboards,
