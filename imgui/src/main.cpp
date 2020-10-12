@@ -7,7 +7,10 @@
 #include <GL/gl3w.h>  // Initialize with gl3wInit()
 #include <GLFW/glfw3.h> // Include glfw3.h after our OpenGL definitions
 
-#define NAME   "NProfiler"
+#define NAME   "N++ Control Center"
+#define MAJOR  "1"
+#define MINOR  "0"
+#define PATCH  "0"
 #define WIDTH  1280
 #define HEIGHT 650
 
@@ -629,7 +632,7 @@ int main(int, char**)
 
     {
       create_window("footer", win3_x, win3_y, win3_w, win3_h);
-      ImGui::Text("NProfiler v1.0 - Eddy, 2020/10/11."); ImGui::SameLine();
+      ImGui::Text("%s v%s.%s.%s - Eddy, 2020/10/11.", NAME, MAJOR, MINOR, PATCH); ImGui::SameLine();
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
       ImGui::End();
     }
