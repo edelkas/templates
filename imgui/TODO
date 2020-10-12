@@ -1,4 +1,9 @@
 * When switching between the "Total score" and "Points" tabs, the leaderboards
   move up and down, hence causing the plots to move as well. FIX!
-* Add plots, and possibly tabs or comboboxes to choose what to plot.
-
+* Add the plot, and possibly tabs or comboboxes to choose what to plot.
+* On the global highscoring stats part, we need to add more space before the
+  table to put filters by tab and type, which can be done with combos or
+  checkboxes. These are needed for the rankings and spreads, but not for
+  leaderboards, so find a good way to fit this. This will fill the remaining
+  space so that a plot is not required, therefore the first plot will be
+  the only one.
