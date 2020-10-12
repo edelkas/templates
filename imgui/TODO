@@ -2,9 +2,10 @@
   move up and down, hence causing the plots to move as well. FIX!
 * Add the plot, and possibly tabs or comboboxes to choose what to plot.
 * On the global highscoring stats part, we need to add more space before the
-  table to put filters by tab and type, which can be done with combos or
-  checkboxes. These are needed for the rankings and spreads, but not for
-  leaderboards, in which case we could use combos to select the tab, type,
-  row, column, level, etc. This will fill the remaining
+  table to put filters by tab and type, which can be done withy  checkboxes.
+  These are needed for the rankings and spreads, but not for leaderboards,
+  in which case we could use combos to select the tab, type, row, column,
+  level, etc. Maybe sliders too. Also, navigation arrows to move through levels,
+  episodes or stories in order would be nice. This will fill the remaining
   space so that a plot is not required, therefore the first plot will be
   the only one.
