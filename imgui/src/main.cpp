@@ -21,17 +21,19 @@ static void glfw_error_callback(int error, const char* description)
   fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
-static void HelpMarker(const char* desc)
-{
-    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "(?)");
-    if (ImGui::IsItemHovered())
-    {
-        ImGui::BeginTooltip();
-        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-        ImGui::TextUnformatted(desc);
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
+static void Tooltip(const char* desc) {
+  if (ImGui::IsItemHovered()) {
+    ImGui::BeginTooltip();
+    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+    ImGui::TextUnformatted(desc);
+    ImGui::PopTextWrapPos();
+    ImGui::EndTooltip();
+  }
+}
+
+static void HelpMarker(const char* desc) {
+  ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "(?)");
+  Tooltip(desc);
 }
 
 static void create_window(const char* window_name, int window_x, int window_y, int window_w, int window_h) {
@@ -60,6 +62,26 @@ static void make_table(const char* name, int rows, int cols, const char** row_he
         ImGui::TableNextColumn();
         ImGui::Text("100");
       }
+    }
+    ImGui::EndTable();
+  }
+}
+
+static void make_leaderboard(const char* name, const char** headers) {
+  ImGuiTableFlags flags = ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_RowBg;
+  if (ImGui::BeginTable(name, 3, flags, ImVec2(0, ImGui::GetTextLineHeightWithSpacing() * 21))) {
+    ImGui::TableSetupColumn(headers[0], ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableSetupColumn(headers[1], ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableSetupColumn(headers[2], ImGuiTableColumnFlags_WidthFixed);
+    ImGui::TableHeadersRow();
+    for (int i = 0; i < 20; i++) {
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("%d", i);
+      ImGui::TableNextColumn();
+      ImGui::Text("%.25s", "EddyMataGallosEddyMataGallos");
+      ImGui::TableNextColumn();
+      ImGui::Text("100.000");
     }
     ImGui::EndTable();
   }
@@ -145,16 +167,21 @@ int main(int, char**)
     const char* s_modes[4]  = { "Solo", "Coop", "Race", "Hardcore" };
     int win1_x = 0;
     int win1_y = 0;
-    int win1_w = 400;
-    int win1_h = 600;
+    int win1_w = 640;
+    int win1_h = 690;
     int win2_x = win1_x + win1_w;
     int win2_y = 0;
-    int win2_w = 600;
-    int win2_h = 600;
+    int win2_w = 640;
+    int win2_h = 690;
+    int win3_x = 0;
+    int win3_y = win1_x + win1_h;
+    int win3_w = WIDTH;
+    int win3_h = HEIGHT - win1_h;
 
     {
       create_window("scores", win1_x, win1_y, win1_w, win1_h);
-      ImGui::Text("HIGHSCORE ANALYSIS | Loaded: "); ImGui::SameLine();
+      ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "HIGHSCORE ANALYSIS"); ImGui::SameLine();
+      ImGui::Text("Loaded:"); ImGui::SameLine();
       ImGui::Text("None"); ImGui::SameLine(ImGui::GetWindowWidth() - 30);
       HelpMarker("This section will analyze the highscores from the server. \
                   You first have to load some scores, either by downloading them, \
@@ -170,48 +197,91 @@ int main(int, char**)
 
       ImGui::Separator();
 
-      ImGui::Text("Personal highscoring summary:"); ImGui::SameLine(ImGui::GetWindowWidth() - 30);
-      HelpMarker("Solo includes both levels and episodes from solo mode, that \
-                  is, the standard highscoring metric used in the community.");
-      const char* row_headers[7] = { "SI", "S", "SU", "SL", "?", "!", "Total" };
-      const char* col_headers[5] = { "Tabs", "Top20", "Top10", "Top5", "0th" };
-      ImGuiTabBarFlags tab_flags = ImGuiTabBarFlags_None;
-      if (ImGui::BeginTabBar("stat_tabs", tab_flags)) {
-        if (ImGui::BeginTabItem("Solo")) {
-          make_table("solo", 8, 5, row_headers, col_headers);
-          ImGui::EndTabItem();
-        }
-        if (ImGui::BeginTabItem("Levels")) {
-          make_table("levels", 8, 5, row_headers, col_headers);
-          ImGui::EndTabItem();
-        }
-        if (ImGui::BeginTabItem("Episodes")) {
-          make_table("episodes", 8, 5, row_headers, col_headers);
-          ImGui::EndTabItem();
-        }
-        if (ImGui::BeginTabItem("Stories")) {
-          make_table("stories", 8, 5, row_headers, col_headers);
-          ImGui::EndTabItem();
-        }
-        ImGui::EndTabBar();
-      }
+      ImGuiTableFlags flags = 0;
+      if (ImGui::BeginTable("highscoring", 2, flags)) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
 
-      ImGui::Separator();
-      ImGui::Text("Global highscoring summary:"); ImGui::SameLine(ImGui::GetWindowWidth() - 30);
-      HelpMarker("'Total score' adds up all your scores in each tab. 'Points' \
-                  awards points for each highscore you have: 20 points for a 0th, \
-                  19 for 1st... up to 1 for 19th.");
-      const char* col_headers2[5] = { "Tabs", "Level", "Episode", "Story", "Total" };
-      if (ImGui::BeginTabBar("varied_tabs", tab_flags)) {
-        if (ImGui::BeginTabItem("Total score")) {
-          make_table("total_score", 8, 5, row_headers, col_headers2);
-          ImGui::EndTabItem();
+        ImGui::Text("          PERSONAL HIGHSCORING STATS");
+        const char* row_headers[7] = { "SI", "S", "SU", "SL", "?", "!", "Total" };
+        const char* col_headers[5] = { "Tabs", "Top20", "Top10", "Top5", "0th" };
+        ImGuiTabBarFlags tab_flags = ImGuiTabBarFlags_None;
+        if (ImGui::BeginTabBar("stat_tabs", tab_flags)) {
+          ImGui::TabItemButton("?", ImGuiTabItemFlags_Leading | ImGuiTabItemFlags_NoTooltip);
+          Tooltip("Solo includes both levels and episodes from solo mode, that \
+                   is, the standard highscoring metric used in the community.");
+          if (ImGui::BeginTabItem("Solo")) {
+            make_table("solo", 8, 5, row_headers, col_headers);
+            ImGui::EndTabItem();
+          }
+          if (ImGui::BeginTabItem("Levels")) {
+            make_table("levels", 8, 5, row_headers, col_headers);
+            ImGui::EndTabItem();
+          }
+          if (ImGui::BeginTabItem("Episodes")) {
+            make_table("episodes", 8, 5, row_headers, col_headers);
+            ImGui::EndTabItem();
+          }
+          if (ImGui::BeginTabItem("Stories")) {
+            make_table("stories", 8, 5, row_headers, col_headers);
+            ImGui::EndTabItem();
+          }
+          ImGui::EndTabBar();
         }
-        if (ImGui::BeginTabItem("Points")) {
-          make_table("points", 8, 5, row_headers, col_headers2);
-          ImGui::EndTabItem();
+
+        const char* col_headers2[5] = { "Tabs", "Level", "Episode", "Story", "Total" };
+        if (ImGui::BeginTabBar("varied_tabs", tab_flags)) {
+          ImGui::TabItemButton("?", ImGuiTabItemFlags_Leading | ImGuiTabItemFlags_NoTooltip);
+          Tooltip("'Total score' adds up all your scores in each tab. 'Points' \
+                   awards points for each highscore you have: 20 points for a 0th, \
+                   19 for 1st... up to 1 for 19th.");
+          if (ImGui::BeginTabItem("Total score")) {
+            make_table("total_score", 8, 5, row_headers, col_headers2);
+            ImGui::EndTabItem();
+          }
+          if (ImGui::BeginTabItem("Points")) {
+            make_table("points", 8, 5, row_headers, col_headers2);
+            ImGui::EndTabItem();
+          }
+          ImGui::EndTabBar();
         }
-        ImGui::EndTabBar();
+
+        ImGui::TableNextColumn();
+
+        ImGui::Text("          GLOBAL HIGHSCORING STATS");
+        if (ImGui::BeginTabBar("global_tabs", tab_flags)) {
+          if (ImGui::BeginTabItem("Leaderboards")) {
+            const char* col_headers3[3] = { "Rank", "Player", "Score" };
+            make_leaderboard("leaderboards", col_headers3);
+            ImGui::EndTabItem();
+          }
+          if (ImGui::BeginTabItem("Rankings")) {
+            const char* col_headers3[3] = { "Rank", "Player", "Count" };
+            make_leaderboard("rankings", col_headers3);
+            ImGui::EndTabItem();
+          }
+          if (ImGui::BeginTabItem("Spreads")) {
+            const char* col_headers3[3] = { "Rank", "Player", "Time" };
+            make_leaderboard("spreads", col_headers3);
+            ImGui::EndTabItem();
+          }
+          ImGui::EndTabBar();
+        }
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+
+        static float arr[] = {
+           0.0f,   1.0f,  5.0f, 12.0f, 17.0f,
+          35.0f,  56.0f, 43.0f, 43.0f, 30.0f,
+          25.0f,  28.0f, 37.0f, 68.0f, 78.0f,
+          89.0f, 100.0f, 90.0f, 80.0f, 85.0f
+        };
+        ImGui::PlotHistogram("Histogram", arr, IM_ARRAYSIZE(arr), 0, NULL, 0, 100, ImVec2(0, 200));
+
+        ImGui::TableNextColumn();
+
+        ImGui::EndTable();
       }
 
       ImGui::End();
@@ -235,7 +305,8 @@ int main(int, char**)
 
       /* Header */
       create_window("savefile", win2_x, win2_y, win2_w, win2_h);
-      ImGui::Text("SAVEFILE ANALYSIS | Loaded: "); ImGui::SameLine();
+      ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "SAVEFILE ANALYSIS"); ImGui::SameLine();
+      ImGui::Text("Loaded:"); ImGui::SameLine();
       ImGui::Text("None"); ImGui::SameLine(ImGui::GetWindowWidth() - 30);
       HelpMarker("This section will analyze your savefile and provide stats. \
                   You first need to load it by clicking on 'Open savefile'. \
@@ -334,8 +405,7 @@ int main(int, char**)
     }
 
     {
-      int height = 30;
-      create_window("footer", 0, HEIGHT - height, WIDTH, height);
+      create_window("footer", win3_x, win3_y, win3_w, win3_h);
       ImGui::Text("NProfiler v1.0 - Eddy, 2020/10/11."); ImGui::SameLine();
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
       ImGui::End();

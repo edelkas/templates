@@ -1,3 +1,4 @@
-* Disable dragging columns, as they produce a wacky effect now.
-* Remove the padding, so that there's no separation between the table.
-* Maybe use the Tables API instead of standard columns.
+* When switching between the "Total score" and "Points" tabs, the leaderboards
+  move up and down, hence causing the plots to move as well. FIX!
+* Add plots, and possibly tabs or comboboxes to choose what to plot.
+
